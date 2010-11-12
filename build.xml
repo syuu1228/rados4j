@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="Shift_JIS"?>
+<project name="rados4j" default="all" basedir=".">
+
+    <description>
+      RADOS library for Java
+    </description>
+
+    <property file="build.properties"/>
+
+    <property name="src" value="src"/>
+    <property name="doc" value="doc"/>
+    <property name="bin" value="bin"/>
+    <property name="native" value="native"/>
+    <property name="target" value="target"/>
+
+    <target name="all" description="build all targets."
+     depends="compile,javah,compile.native,archive"/>
+
+    <target name="clean" description="erase generated file">
+        <delete>
+            <fileset dir="${bin}" includes="**/*.class"/>
+	    <fileset dir="${native}" includes="*.o"/>
+	    <fileset dir="${target}" includes="librados4j.so,rados4j.jar"/>
+        </delete>
+    </target>
+
+	<target name="compile" description="compile java code">
+	  <mkdir dir="${bin}"/>
+	  <mkdir dir="${target}"/>
+	  <javac srcdir="${src}" destdir="${bin}" source="1.6" debug="on"/>
+    </target>
+    
+    <target name="javah" description="create C/C++ header" depends="compile">
+        <javah class="com.dokukino.rados4j.Rados" destdir="${native}" 
+         force="Yes" verbose="Yes">
+            <classpath>
+                <!-- path refid="classpath"/ -->
+                <path location="${bin}"/>
+            </classpath>
+        </javah>
+		<javah class="com.dokukino.rados4j.Pool" destdir="${native}" 
+         force="Yes" verbose="Yes">
+            <classpath>
+                <!-- path refid="classpath"/ -->
+                <path location="${bin}"/>
+            </classpath>
+        </javah>
+		<javah class="com.dokukino.rados4j.ListCtx" destdir="${native}" 
+         force="Yes" verbose="Yes">
+            <classpath>
+                <!-- path refid="classpath"/ -->
+                <path location="${bin}"/>
+            </classpath>
+        </javah>
+    </target>
+
+    <target name="compile.native" description="execute make" depends="javah">
+        <exec executable="make" dir="${native}" failonerror="yes">
+            <arg line="clean depend all strip test"/>
+        </exec>
+    </target>
+
+    <target name="archive">
+        <jar jarfile="${target}/rados4j.jar" basedir="${bin}"/>
+    </target>
+
+    <target name="javadoc">
+        <delete dir="${doc}" />
+        <mkdir dir="${doc}" />
+        <javadoc packagenames="*" sourcepath="${src}" destdir="${doc}" encoding="UTF-8" charset="UTF-8">
+        </javadoc>                
+    </target>
+</project>
